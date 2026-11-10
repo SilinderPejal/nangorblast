@@ -52,7 +52,7 @@ src/
 [Exception](exception/) folder buat file java yang berfungsi sebagai exception
 
 ### **Interface**
-[Interface](interface/) folder buat file java yang berfungsi sebagai interface
+[Interface](interfaces/) folder buat file java yang berfungsi sebagai interface
 
 ### **Game**
 [Game](game/) folder buat meletakkan logic dari game
