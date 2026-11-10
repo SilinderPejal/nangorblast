@@ -1,5 +1,22 @@
 # **Dokumentasi**
-File dokumentasi pribadi kelompok yang berisi tutorial, struktur projek, dan penjelasan masing-masing file java. Dokumentasi ini akan diupdate secara berkala
+File dokumentasi pribadi kelompok yang berisi tutorial, struktur projek, dan penjelasan masing-masing file java. Dokumentasi ini akan diupdate secara berkala.
+Uhh karena aku malas ngeformat mdnya, untuk sementara arsitektur kodenya aku jelasin di sini:
+1. game menerima input user dari input_handler (ini di cli_input_handler)
+2. game logic menentukan input bakal ngapain (uh buat detailnya game logic itu buat mengelola keseluruhan mekanisme/perilaku dari gamenya dan diatur di folder game (entities, environment, system))
+3. game state nanti menyimpan kondisi game secara real time biar bisa jadi sumber informasi bagi bagian lain untuk mengetahui kondisi game 
+4. event buat ngerepresentasiin sama ngasih tahu kejadian yang ada di game ke komponen lain
+5. poin 2, 3, 4 saling interaksi buat ngasih display berdasarkan kondisi game ke user
+Buat contoh biar ada gambaran:
+anggap skenarionya player naro bomb dengan nekan spasi
+1. input handler nerima inputnya terus diterusin ke game logic
+2. game logic yang nentuin si bom ini bakal ngapain
+3. game state ngabarin kalau bom udah ditaro di posisi tertentu (kayak buat data bom gitu)
+4. game event ngasih tahu kalau bom udah berhasil ditempatkan jadinya komponen lain bisa merespons event tersebut, kayak mainin audio atau ngasih efek visual
+5. yes
+maaf gak jelas, pertama kali bikin game di java
+
+**Extra note**:
+fitur buat initialize (start game) untuk saat ini belum ada, jadi kalau mau testing fitur masing-masing uhh bikin class baru terus run di terminal (jangan lewat gradle)
 
 # Daftar Isi
 - [Tutorial](#tutorial)
