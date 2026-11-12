@@ -11,16 +11,13 @@ public class menu_state implements game_state {
     }
 
     @Override
-    public void enter() {
-    }
+    public void enter() {}
 
     @Override
-    public void update() {
-    }
+    public void update() {}
 
     @Override
-    public void exit() {
-    }
+    public void exit() {}
 
     @Override
     public game_state.game_state_type get_type() {

@@ -3,7 +3,9 @@ package nangor_blast.interfaces;
 public interface game_state {
 
     enum game_state_type {
-        menu
+        menu,
+        playing,
+        win
     }
 
     void enter();

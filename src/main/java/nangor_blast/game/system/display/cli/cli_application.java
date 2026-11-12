@@ -11,11 +11,22 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 
 import nangor_blast.exception.cli_exception;
+
 import nangor_blast.game.system.display.cli.view.cli_main_menu;
 import nangor_blast.game.system.display.cli.view.menu_error;
+import nangor_blast.game.system.display.cli.view.cli_win;
+import nangor_blast.game.system.display.cli.view.gameplay.cli_game;
+
 import nangor_blast.game.system.menu.menu_state;
 import nangor_blast.game.system.menu.main_menu;
+
+import nangor_blast.game.system.game_session;
+import nangor_blast.game.entities.player.player_movement;
+
 import nangor_blast.game.system.state.game_state_manager;
+import nangor_blast.game.system.state.playing_state;
+
+import nangor_blast.interfaces.game_state.game_state_type;
 
 public class cli_application {
 
@@ -24,11 +35,16 @@ public class cli_application {
 
     private menu_state menu_state;
     private cli_main_menu main_menu_view;
+    private cli_game game_view;
+    private cli_win win_view;
 
     private cli_input_handler input_handler;
     private menu_error menu_error;
 
     private game_state_manager state_manager;
+
+    private game_session session;
+    private player_movement movement;
 
     private boolean running;
 
@@ -79,54 +95,129 @@ public class cli_application {
 
                 } else {
 
-                    int previous_index =
-                        menu_state.get_selected_index();
+                    game_state_type current_state =
+                        state_manager.get_current_state_type();
 
-                    main_menu selected = input_handler.handle_input(
-                        key,
-                        menu_state
-                    );
+                    // Handle win screen input
+                    if (current_state == game_state_type.win) {
 
-                    // Handle invalid input
-                    if (input_handler.has_invalid_input()) {
+                        if (
+                            key != null &&
+                            key.getKeyType() == KeyType.Enter
+                        ) {
+                            // Reset current game session
+                            session = null;
+                            movement = null;
 
-                        menu_error.register_invalid_input();
-                        dirty = true;
-                    }
+                            // Return to main menu
+                            state_manager.change_state(menu_state);
 
-                    // Render notification
-                    if (menu_error.get_invalid_input_count() > 0) {
-                        menu_error.render_notification(screen);
-                    }
+                            dirty = true;
+                        }
 
-                    // Check whether menu selection changed
-                    if (
-                        previous_index != menu_state.get_selected_index()
-                    ) {
-                        dirty = true;
-                    }
+                    } else {
 
-                    // Handle selected menu option
-                    if (selected != null) {
+                        int previous_index = -1;
 
-                        switch (selected) {
+                        if (current_state == game_state_type.menu) {
+                            previous_index =
+                                menu_state.get_selected_index();
+                        }
 
-                            case start_game:
-                                // Gameplay will be implemented later.
-                                break;
+                        // Handle input based on current game state
+                        main_menu selected = input_handler.handle_input(
+                            key,
+                            current_state,
+                            menu_state,
+                            session,
+                            movement
+                        );
 
-                            case how_to_play:
-                                // Instructions will be implemented later.
-                                break;
+                        // Handle invalid menu input
+                        if (
+                            input_handler.has_invalid_input() &&
+                            current_state == game_state_type.menu
+                        ) {
+                            menu_error.register_invalid_input();
+                            dirty = true;
+                        }
 
-                            case exit:
-                                running = false;
-                                break;
+                        // Check whether menu selection changed
+                        if (
+                            current_state == game_state_type.menu &&
+                            previous_index != menu_state.get_selected_index()
+                        ) {
+                            dirty = true;
+                        }
+
+                        // Handle selected menu option
+                        if (selected != null) {
+
+                            switch (selected) {
+
+                                case start_game:
+
+                                    session = new game_session();
+
+                                    if (session.initialize()) {
+
+                                        playing_state playing =
+                                            new playing_state(
+                                                state_manager,
+                                                session
+                                            );
+
+                                        state_manager.change_state(playing);
+
+                                        movement = playing.get_movement();
+
+                                        dirty = true;
+
+                                    } else {
+
+                                        session = null;
+                                        movement = null;
+
+                                        menu_error.register_invalid_input();
+                                        dirty = true;
+                                    }
+
+                                    break;
+
+                                case how_to_play:
+                                    // Instructions will be implemented later.
+                                    break;
+
+                                case exit:
+                                    running = false;
+                                    break;
+                            }
                         }
                     }
                 }
 
+                // Update game state
+                game_state_type previous_state =
+                    state_manager.get_current_state_type();
+
                 state_manager.update();
+
+                // Detect state transition
+                if (
+                    previous_state !=
+                    state_manager.get_current_state_type()
+                ) {
+                    dirty = true;
+                }
+
+                // Refresh gameplay after receiving input
+                if (
+                    key != null &&
+                    state_manager.get_current_state_type() ==
+                    game_state_type.playing
+                ) {
+                    dirty = true;
+                }
 
                 // Limit polling frequency
                 try {
@@ -151,6 +242,8 @@ public class cli_application {
 
         menu_state = new menu_state();
         main_menu_view = new cli_main_menu();
+        game_view = new cli_game();
+        win_view = new cli_win();
 
         input_handler = new cli_input_handler();
         menu_error = new menu_error();
@@ -167,12 +260,31 @@ public class cli_application {
 
         } else {
 
-            main_menu_view.render(
-                screen,
-                menu_state
-            );
+            switch (state_manager.get_current_state_type()) {
 
-            menu_error.render_notification(screen);
+                case menu:
+
+                    main_menu_view.render(
+                        screen,
+                        menu_state
+                    );
+
+                    menu_error.render_notification(screen);
+                    break;
+
+                case playing:
+
+                    game_view.render(
+                        screen,
+                        session
+                    );
+                    break;
+
+                case win:
+
+                    win_view.render(screen);
+                    break;
+            }
         }
     }
 
