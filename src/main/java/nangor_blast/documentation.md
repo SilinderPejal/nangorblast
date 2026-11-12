@@ -101,20 +101,20 @@ src/
 
 # Interface
 Jadi buat interfacenya ada:
-1. entity (yg kegolong entity objek yg punya perilaku khusus in game, berarti dari f01-f06 itu entity)
-2. moveable (enemy dan player)
-3. damageable (player,  enemy, destructible block, reinforced block)
-4. playable (player 1, player 2)
-5. collectible (powerup)
-6. explodable (bomb)
+1. moveable (enemy dan player)
+2. damageable (player,  enemy, destructible block, reinforced block)
+3. playable (player 1, player 2)
+4. collectible (powerup)
+5. explodable (bomb)
 
-Terus ntar ada abstract class game_entity yang bakal jadi parent buat masing-masing entity in game 
+Terus ada abstract class entity (yg kegolong entity objek yg punya perilaku khusus in game, berarti dari f01-f06 itu entity) yang bakal jadi semacam parent buat masing-masing entity in game
 
-Terus abstract class buat entity yg punya lebih dari 1 jenis kayak player, enemy, block, bomb, power-up
+Terus ntar kalian bikin lagi abstract class buat entity yg punya lebih dari 1 jenis kayak player, enemy, block, bomb, power-up
 
 Contoh penerapan:
-1. game_entity implement entity
-2. enemy extend game_entity implement moveable, damageable
-3. normal_enemy extend enemy
-4. Boss_enemy extend enemy
+1. Public abstract class entity
+2. enemy **extend** entity **implement** moveable, damageable
+3. normal_enemy **extend** enemy
+4. Boss_enemy **extend** enemy
 
+oh ya path entity ada di nangorblast\src\main\java\nangor_blast\game\entities\entity.java
