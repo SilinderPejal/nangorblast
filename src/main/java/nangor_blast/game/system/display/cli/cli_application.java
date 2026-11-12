@@ -109,6 +109,9 @@ public class cli_application {
                             session = null;
                             movement = null;
 
+                            // Reset menu error counter
+                            menu_error.reset();
+
                             // Return to main menu
                             state_manager.change_state(menu_state);
 

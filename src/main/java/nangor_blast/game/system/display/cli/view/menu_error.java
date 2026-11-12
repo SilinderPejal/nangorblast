@@ -1,3 +1,4 @@
+
 package nangor_blast.game.system.display.cli.view;
 
 import java.io.IOException;
@@ -99,6 +100,23 @@ public class menu_error {
 
         notification_expiry_time =
             System.currentTimeMillis() + notification_duration;
+    }
+
+    // Reset error counter and screen condition
+    public void reset() {
+
+        invalid_input_count = 0;
+
+        notification_message = null;
+        notification_expiry_time = 0;
+
+        final_screen_active = false;
+
+        jitter_x = 0;
+        jitter_y = 0;
+
+        next_jitter_time = 0;
+        jitter_expiry_time = 0;
     }
 
     public boolean update() {
