@@ -10,6 +10,7 @@ public class game_session {
     private game_map current_map;
     private player1 player;
     private game_state_type game_state;
+    private final score_tracker score = new score_tracker();
 
     public game_session() {
         current_map = null;
@@ -19,6 +20,7 @@ public class game_session {
 
     // Inisialisasi permainan
     public boolean initialize() {
+        score.reset();
 
         // Reset kondisi permainan
         current_map = null;
@@ -97,6 +99,10 @@ public class game_session {
         return initialize();
     }
 
+    public score_tracker get_score_tracker() {
+        return score;
+    }
+    
     public game_map get_current_map() {
         return current_map;
     }
