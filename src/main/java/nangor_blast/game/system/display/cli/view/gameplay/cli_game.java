@@ -35,6 +35,17 @@ public class cli_game {
             session.get_current_map()
         );
 
+        int score_x = Math.max(0, map_view.get_start_x(screen, session.get_current_map()));
+        int score_y = map_view.get_start_y(screen, session.get_current_map()) - 1;
+
+        if (score_y >= 0) {
+            screen.newTextGraphics().putString(
+                score_x,
+                score_y,
+                "Score: " + session.get_score_tracker().get_score()
+            );
+        }
+        
         screen.refresh();
     }
 }

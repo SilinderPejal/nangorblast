@@ -9,7 +9,7 @@ import com.googlecode.lanterna.screen.Screen;
 
 public class cli_win {
 
-    public void render(Screen screen) throws IOException {
+    public void render(Screen screen, int final_score) throws IOException {
 
         screen.clear();
 
@@ -45,7 +45,7 @@ public class cli_win {
 
         String message = "Press ENTER to exit";
 
-        int total_height = art.length + 2;
+        int total_height = art.length + 3;
 
         int start_x = (terminal_width - art_width) / 2;
         int start_y = (terminal_height - total_height) / 2;
@@ -65,6 +65,14 @@ public class cli_win {
 
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
 
+        String score_message = "Final Score: " + final_score;
+
+        graphics.putString(
+            Math.max(0, (terminal_width - score_message.length()) / 2),
+            start_y + art.length + 1,
+            score_message
+        );
+        
         graphics.putString(
             (terminal_width - message.length()) / 2,
             start_y + art.length + 2,

@@ -285,7 +285,10 @@ public class cli_application {
 
                 case win:
 
-                    win_view.render(screen);
+                    win_view.render(
+                        screen,
+                        session.get_score_tracker().get_score()
+                    );
                     break;
             }
         }
