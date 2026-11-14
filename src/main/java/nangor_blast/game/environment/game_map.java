@@ -6,8 +6,8 @@ import java.util.Optional;
 import nangor_blast.game.entities.block.block;
 import nangor_blast.game.entities.block.destructible_block;
 import nangor_blast.game.entities.block.indestructible_block;
-import nangor_blast.interfaces.blast_block;
 import nangor_blast.interfaces.blast_world;
+import nangor_blast.interfaces.blast_block;
 
 public class game_map implements blast_world {
 
@@ -21,27 +21,34 @@ public class game_map implements blast_world {
     private final int exit_y = 1;
 
     private final block[][] blocks = new block[height][width];
+    private final char[][] tiles = new char[height][width];
 
     public game_map() {
-        String[] layout = {
-            "##############",
-            "#P..I...D...X#",
-            "#.##I##.##.E.#",
-            "#.E.I....I...#",
-            "###.###.###..#",
-            "#D..I...D.E..#",
-            "#.##.###.##..#",
-            "#...I....B...#",
-            "#E..D....I..E#",
-            "##############"
-        };
 
-        // Array memakai urutan [baris][kolom], yaitu [y][x].
+        String[] layout = map_layout.default_glacier;
+
         for (int y = 0; y < height; y++) {
+
             for (int x = 0; x < width; x++) {
-                switch (layout[y].charAt(x)) {
-                    case '#' -> blocks[y][x] = new indestructible_block(x, y);
-                    case 'D' -> blocks[y][x] = new destructible_block(x, y);
+
+                char tile = layout[y].charAt(x);
+
+                // Menyimpan karakter asli layout
+                tiles[y][x] = tile;
+
+                switch (tile) {
+
+                    case '#':
+                        blocks[y][x] = new indestructible_block(x, y);
+                        break;
+
+                    case 'D':
+                        blocks[y][x] = new destructible_block(x, y);
+                        break;
+
+                    default:
+                        blocks[y][x] = null;
+                        break;
                 }
             }
         }
@@ -71,31 +78,59 @@ public class game_map implements blast_world {
         return exit_y;
     }
 
-    // Mengecek apakah koordinat berada di dalam map
+    public char get_tile_at(int x, int y) {
+
+        if (!is_inside(x, y)) {
+            return '\0';
+        }
+
+        return tiles[y][x];
+    }
+
     public boolean is_inside(int x, int y) {
-        return x >= 0 && x < width
-            && y >= 0 && y < height;
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    // Mengecek apakah tile berada di dalam map dan bebas dari block aktif.
+    //shity ahh collision system
     public boolean is_walkable(int x, int y) {
-        return is_inside(x, y) && get_block_at(x, y).isEmpty();
+
+        if (!is_inside(x, y)) {
+            return false;
+        }
+
+        char tile = get_tile_at(x, y);
+
+        switch (tile) {
+
+            case '#':
+                return false;
+            case 'D':
+                return get_block_at(x, y).isEmpty();
+            case 'I':
+            case 'P':
+            case 'E':
+            case 'B':
+            case 'X':
+            case '.':
+                return true;
+            default:
+                return false;
+        }
     }
 
-    @Override
     public boolean is_out_of_bounds(int x, int y) {
         return !is_inside(x, y);
     }
 
     @Override
     public Optional<blast_block> get_block_at(int x, int y) {
-        if (is_out_of_bounds(x, y)) {
+
+        if (!is_inside(x, y)) {
             return Optional.empty();
         }
 
         block tile_block = blocks[y][x];
 
-        // Block yang sudah hancur diperlakukan sebagai tile kosong.
         if (tile_block == null || !tile_block.is_active()) {
             return Optional.empty();
         }
@@ -103,12 +138,10 @@ public class game_map implements blast_world {
         return Optional.of(tile_block);
     }
 
-    // Mengecek apakah koordinat merupakan posisi spawn
     public boolean is_spawn(int x, int y) {
         return x == spawn_x && y == spawn_y;
     }
 
-    // Mengecek apakah koordinat merupakan posisi exit
     public boolean is_exit(int x, int y) {
         return x == exit_x && y == exit_y;
     }

@@ -27,7 +27,7 @@ public class cli_player {
 
         TextGraphics graphics = screen.newTextGraphics();
 
-        graphics.setForegroundColor(TextColor.ANSI.YELLOW);
+        graphics.setForegroundColor(TextColor.ANSI.BLUE);
 
         graphics.putString(
             start_x + player.get_x() * 2,

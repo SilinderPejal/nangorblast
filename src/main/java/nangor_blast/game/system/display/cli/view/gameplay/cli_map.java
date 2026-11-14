@@ -5,8 +5,6 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 
-import nangor_blast.game.entities.block.destructible_block;
-import nangor_blast.game.entities.block.indestructible_block;
 import nangor_blast.game.environment.game_map;
 
 public class cli_map {
@@ -29,22 +27,50 @@ public class cli_map {
 
             for (int x = 0; x < map.get_width(); x++) {
 
-                var tile_block = map.get_block_at(x, y).orElse(null);
+                char tile_type = map.get_tile_at(x, y);
+
                 String tile = ". ";
 
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
 
-                if (map.is_exit(x, y)) {
-                    graphics.setForegroundColor(TextColor.ANSI.GREEN);
-                    tile = "X ";
-                } else if (tile_block instanceof indestructible_block) {
-                    tile = "# ";
-                } else if (tile_block instanceof destructible_block) {
-                    tile = "D ";
+                switch (tile_type) {
+
+                    case '#':
+                        tile = "# ";
+                        break;
+
+                    case 'I':
+                        graphics.setForegroundColor(TextColor.ANSI.CYAN);
+                        tile = "I ";
+                        break;
+
+                    case 'D':
+                        if (map.get_block_at(x, y).isPresent()) {
+                            tile = "D ";
+                        }
+                        break;
+
+                    case 'E':
+                        graphics.setForegroundColor(TextColor.ANSI.RED);
+                        tile = "E ";
+                        break;
+
+                    case 'B':
+                        graphics.setForegroundColor(TextColor.ANSI.MAGENTA);
+                        tile = "B ";
+                        break;
+
+                    case 'X':
+                        graphics.setForegroundColor(TextColor.ANSI.GREEN);
+                        tile = "X ";
+                        break;
+
+                    default:
+                        tile = ". ";
+                        break;
                 }
 
                 graphics.putString(start_x + x * 2, start_y + y, tile);
-                
             }
         }
     }
