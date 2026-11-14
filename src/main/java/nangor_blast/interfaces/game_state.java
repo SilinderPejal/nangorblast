@@ -5,7 +5,8 @@ public interface game_state {
     enum game_state_type {
         menu,
         playing,
-        win
+        win,
+        lose
     }
 
     void enter();

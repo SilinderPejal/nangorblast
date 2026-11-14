@@ -52,12 +52,18 @@ public class playing_state implements game_state {
             return;
         }
 
+        // Update bomb dan proses ledakan.
         session.get_bomb_manager().update();
+
+        // Update proses respawn player.
+        session.get_player_respawn().update();
 
         player current_player = session.get_player();
 
+        // Update durasi invulnerability.
         current_player.update_invulnerability();
 
+        // Periksa apakah player sudah kehabisan lives.
         if (!current_player.is_alive()) {
 
             if (!game_over_notified) {
@@ -79,6 +85,7 @@ public class playing_state implements game_state {
             return;
         }
 
+        // Periksa apakah player sudah mencapai exit.
         if (session.get_current_map().is_exit(
             current_player.get_x(),
             current_player.get_y()

@@ -4,6 +4,7 @@ package nangor_blast.game.system;
 import nangor_blast.game.environment.game_map;
 import nangor_blast.game.entities.player.player;
 import nangor_blast.game.entities.player.player1;
+import nangor_blast.game.entities.player.player_respawn;
 import nangor_blast.game.system.event.game_event;
 import nangor_blast.game.system.event.game_event.event_type;
 import nangor_blast.game.system.event.game_event_manager;
@@ -16,7 +17,9 @@ public class game_session {
     private game_state_type game_state;
 
     private final game_event_manager event_manager;
+
     private bomb_manager bomb_manager;
+    private player_respawn player_respawn;
 
     public game_session() {
 
@@ -25,7 +28,9 @@ public class game_session {
         game_state = null;
 
         event_manager = new game_event_manager();
+
         bomb_manager = null;
+        player_respawn = null;
     }
 
     public boolean initialize() {
@@ -37,7 +42,9 @@ public class game_session {
         current_map = null;
         player = null;
         game_state = null;
+
         bomb_manager = null;
+        player_respawn = null;
 
         current_map = new game_map();
 
@@ -70,6 +77,14 @@ public class game_session {
 
         bomb_manager.add_target(player);
 
+        player_respawn = new player_respawn(
+            current_map,
+            bomb_manager,
+            event_manager
+        );
+
+        player_respawn.add_player(player);
+
         game_state = game_state_type.playing;
 
         event_manager.notify_event(
@@ -97,6 +112,30 @@ public class game_session {
         );
 
         return true;
+    }
+
+    public void update(double delta_time) {
+
+        if (game_state != game_state_type.playing) {
+            return;
+        }
+
+        if (bomb_manager != null) {
+            bomb_manager.update(delta_time);
+        }
+
+        if (player_respawn != null) {
+            player_respawn.update();
+        }
+
+        if (player != null) {
+            player.update_invulnerability();
+
+            // Lose hanya terjadi jika seluruh nyawa habis.
+            if (!player.is_alive()) {
+                game_state = game_state_type.lose;
+            }
+        }
     }
 
     public boolean validate_map() {
@@ -165,6 +204,10 @@ public class game_session {
 
     public bomb_manager get_bomb_manager() {
         return bomb_manager;
+    }
+
+    public player_respawn get_player_respawn() {
+        return player_respawn;
     }
 
     public game_event_manager get_event_manager() {

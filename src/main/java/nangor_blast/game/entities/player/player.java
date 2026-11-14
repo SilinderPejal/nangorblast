@@ -19,6 +19,7 @@ public abstract class player extends entity implements playable, moveable, damag
     protected int active_bombs;
     protected int blast_range;
     protected double speed;
+
     protected boolean invulnerable;
     protected boolean remote_unlocked;
     protected long invulnerability_end_time;
@@ -27,17 +28,14 @@ public abstract class player extends entity implements playable, moveable, damag
         super(x, y);
 
         this.player_id = player_id;
-
         this.lives = 3;
         this.bomb_capacity = 1;
         this.active_bombs = 0;
         this.blast_range = 1;
-
         this.speed = 1.0;
 
         this.invulnerable = false;
         this.remote_unlocked = false;
-
         this.invulnerability_end_time = 0;
     }
 
@@ -53,18 +51,7 @@ public abstract class player extends entity implements playable, moveable, damag
 
     @Override
     public void lose_life() {
-
-        if (!can_be_damaged()) {
-            return;
-        }
-
-        lives--;
-
-        if (lives > 0) {
-            respawn();
-        } else {
-            set_active(false);
-        }
+        take_damage(1);
     }
 
     @Override
@@ -73,18 +60,25 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void increase_lives() {
-
         if (lives < max_lives) {
             lives++;
         }
     }
 
-    protected void respawn() {
+    public boolean respawn_at(int x, int y) {
+
+        if (!is_alive()) {
+            return false;
+        }
+
+        set_position(x, y);
+        set_active(true);
 
         invulnerable = true;
-
         invulnerability_end_time =
             System.currentTimeMillis() + invulnerability_duration;
+
+        return true;
     }
 
     public void update_invulnerability() {
@@ -110,25 +104,22 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public boolean can_place_bomb() {
-        return is_alive() && active_bombs < bomb_capacity;
+        return is_alive() && is_active() && active_bombs < bomb_capacity;
     }
 
     public void place_bomb() {
-
         if (can_place_bomb()) {
             active_bombs++;
         }
     }
 
     public void bomb_exploded() {
-
         if (active_bombs > 0) {
             active_bombs--;
         }
     }
 
     public void increase_bomb_capacity() {
-
         if (bomb_capacity < max_bomb_capacity) {
             bomb_capacity++;
         }
@@ -143,7 +134,6 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void increase_blast_range() {
-
         if (blast_range < max_blast_range) {
             blast_range++;
         }
@@ -155,16 +145,15 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void increase_speed(double amount) {
-
         if (amount > 0) {
             speed += amount;
         }
     }
 
     public int get_max_lives() {
-    return max_lives;
+        return max_lives;
     }
-    
+
     public boolean has_remote_unlocked() {
         return remote_unlocked;
     }
@@ -176,7 +165,11 @@ public abstract class player extends entity implements playable, moveable, damag
     @Override
     public void move(int dx, int dy, double delta_time) {
 
-        if (!is_alive() || (dx == 0 && dy == 0)) {
+        if (
+            !is_alive() ||
+            !is_active() ||
+            (dx == 0 && dy == 0)
+        ) {
             return;
         }
 
@@ -190,7 +183,7 @@ public abstract class player extends entity implements playable, moveable, damag
 
     @Override
     public boolean can_be_damaged() {
-        return is_alive() && !invulnerable;
+        return is_alive() && is_active() && !invulnerable;
     }
 
     @Override
@@ -203,13 +196,12 @@ public abstract class player extends entity implements playable, moveable, damag
         lives -= damage;
 
         if (lives <= 0) {
-
             lives = 0;
             set_active(false);
-
-        } else {
-
-            respawn();
+            return;
         }
+
+        // Player menunggu proses respawn.
+        set_active(false);
     }
 }

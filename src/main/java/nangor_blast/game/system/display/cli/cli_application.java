@@ -15,6 +15,7 @@ import nangor_blast.exception.cli_exception;
 import nangor_blast.game.system.display.cli.view.cli_main_menu;
 import nangor_blast.game.system.display.cli.view.menu_error;
 import nangor_blast.game.system.display.cli.view.cli_win;
+import nangor_blast.game.system.display.cli.view.cli_lose;
 import nangor_blast.game.system.display.cli.view.gameplay.cli_game;
 
 import nangor_blast.game.system.menu.menu_state;
@@ -25,10 +26,14 @@ import nangor_blast.game.entities.player.player_movement;
 
 import nangor_blast.game.system.state.game_state_manager;
 import nangor_blast.game.system.state.playing_state;
+import nangor_blast.game.system.state.lose_state;
+
+import nangor_blast.game.system.event.game_event;
+import nangor_blast.interfaces.game_event_listener;
 
 import nangor_blast.interfaces.game_state.game_state_type;
 
-public class cli_application {
+public class cli_application implements game_event_listener {
 
     private Terminal terminal;
     private Screen screen;
@@ -37,6 +42,7 @@ public class cli_application {
     private cli_main_menu main_menu_view;
     private cli_game game_view;
     private cli_win win_view;
+    private cli_lose lose_view;
 
     private cli_input_handler input_handler;
     private menu_error menu_error;
@@ -46,6 +52,7 @@ public class cli_application {
     private game_session session;
     private player_movement movement;
 
+    private boolean player_lost;
     private boolean running;
 
     public void start() throws cli_exception {
@@ -64,26 +71,21 @@ public class cli_application {
 
             while (running) {
 
-                // Detect terminal resizing
                 if (screen.doResizeIfNecessary() != null) {
                     dirty = true;
                 }
 
-                // Update error notification
                 if (menu_error.update()) {
                     dirty = true;
                 }
 
-                // Render only when the screen needs updating
                 if (dirty) {
                     render();
                     dirty = false;
                 }
 
-                // Read keyboard input
                 KeyStroke key = screen.pollInput();
 
-                // Handle final screen
                 if (menu_error.is_final_screen_active()) {
 
                     if (
@@ -98,21 +100,28 @@ public class cli_application {
                     game_state_type current_state =
                         state_manager.get_current_state_type();
 
-                    // Handle win screen input
-                    if (current_state == game_state_type.win) {
+                    // Handle win and lose screen input
+                    if (
+                        current_state == game_state_type.win ||
+                        current_state == game_state_type.lose
+                    ) {
 
                         if (
                             key != null &&
                             key.getKeyType() == KeyType.Enter
                         ) {
-                            // Reset current game session
+                            // Remove listener before discarding session
+                            if (session != null) {
+                                session.get_event_manager()
+                                    .remove_listener(this);
+                            }
+
                             session = null;
                             movement = null;
+                            player_lost = false;
 
-                            // Reset menu error counter
                             menu_error.reset();
 
-                            // Return to main menu
                             state_manager.change_state(menu_state);
 
                             dirty = true;
@@ -127,7 +136,6 @@ public class cli_application {
                                 menu_state.get_selected_index();
                         }
 
-                        // Handle input based on current game state
                         main_menu selected = input_handler.handle_input(
                             key,
                             current_state,
@@ -136,7 +144,6 @@ public class cli_application {
                             movement
                         );
 
-                        // Handle invalid menu input
                         if (
                             input_handler.has_invalid_input() &&
                             current_state == game_state_type.menu
@@ -145,7 +152,6 @@ public class cli_application {
                             dirty = true;
                         }
 
-                        // Check whether menu selection changed
                         if (
                             current_state == game_state_type.menu &&
                             previous_index != menu_state.get_selected_index()
@@ -153,7 +159,6 @@ public class cli_application {
                             dirty = true;
                         }
 
-                        // Handle selected menu option
                         if (selected != null) {
 
                             switch (selected) {
@@ -163,6 +168,12 @@ public class cli_application {
                                     session = new game_session();
 
                                     if (session.initialize()) {
+
+                                        // Register CLI as event listener
+                                        session.get_event_manager()
+                                            .add_listener(this);
+
+                                        player_lost = false;
 
                                         playing_state playing =
                                             new playing_state(
@@ -199,17 +210,33 @@ public class cli_application {
                     }
                 }
 
-                // Update game state
+                // Update current state
                 game_state_type previous_state =
                     state_manager.get_current_state_type();
 
                 state_manager.update();
 
-                // Render ulang selama gameplay berjalan,
-                // termasuk ketika bomb sedang menghitung fuse.
-                if (state_manager.get_current_state_type() ==game_state_type.playing) {
-                    dirty = true;}
-        
+                // Handle player death event
+                if (
+                    player_lost &&
+                    state_manager.get_current_state_type() ==
+                    game_state_type.playing
+                ) {
+                    player_lost = false;
+
+                    state_manager.change_state(new lose_state());
+
+                    dirty = true;
+                }
+
+                // Refresh gameplay while playing
+                if (
+                    state_manager.get_current_state_type() ==
+                    game_state_type.playing
+                ) {
+                    dirty = true;
+                }
+
                 // Detect state transition
                 if (
                     previous_state !=
@@ -227,7 +254,6 @@ public class cli_application {
                     dirty = true;
                 }
 
-                // Limit polling frequency
                 try {
                     Thread.sleep(16);
 
@@ -249,15 +275,34 @@ public class cli_application {
     private void initialize() {
 
         menu_state = new menu_state();
+
         main_menu_view = new cli_main_menu();
         game_view = new cli_game();
         win_view = new cli_win();
+        lose_view = new cli_lose();
 
         input_handler = new cli_input_handler();
         menu_error = new menu_error();
 
         state_manager = new game_state_manager();
         state_manager.change_state(menu_state);
+
+        player_lost = false;
+    }
+
+    @Override
+    public void on_game_event(game_event event) {
+
+        if (event == null || session == null) {
+            return;
+        }
+
+        if (
+            event.get_type() == game_event.event_type.player_died &&
+            event.get_target() == session.get_player()
+        ) {
+            player_lost = true;
+        }
     }
 
     private void render() throws IOException {
@@ -292,11 +337,21 @@ public class cli_application {
 
                     win_view.render(screen);
                     break;
+
+                case lose:
+
+                    lose_view.render(screen);
+                    break;
             }
         }
     }
 
     public void stop() throws cli_exception {
+
+        // Unregister listener before closing
+        if (session != null) {
+            session.get_event_manager().remove_listener(this);
+        }
 
         IOException error = null;
 
