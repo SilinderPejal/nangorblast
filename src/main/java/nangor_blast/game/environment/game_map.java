@@ -33,7 +33,6 @@ public class game_map implements blast_world {
 
                 char tile = layout[y].charAt(x);
 
-                // Menyimpan karakter asli layout
                 tiles[y][x] = tile;
 
                 switch (tile) {
@@ -91,7 +90,6 @@ public class game_map implements blast_world {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    //shity ahh collision system
     public boolean is_walkable(int x, int y) {
 
         if (!is_inside(x, y)) {
@@ -104,8 +102,10 @@ public class game_map implements blast_world {
 
             case '#':
                 return false;
+
             case 'D':
                 return get_block_at(x, y).isEmpty();
+
             case 'I':
             case 'P':
             case 'E':
@@ -113,11 +113,13 @@ public class game_map implements blast_world {
             case 'X':
             case '.':
                 return true;
+
             default:
                 return false;
         }
     }
 
+    @Override
     public boolean is_out_of_bounds(int x, int y) {
         return !is_inside(x, y);
     }

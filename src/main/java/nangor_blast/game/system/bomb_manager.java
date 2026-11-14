@@ -13,38 +13,57 @@ import nangor_blast.game.entities.bomb.pumped_bomb;
 import nangor_blast.game.entities.bomb.remote_bomb;
 import nangor_blast.game.entities.entity;
 import nangor_blast.game.entities.player.player;
+import nangor_blast.game.system.event.game_event;
+import nangor_blast.game.system.event.game_event.event_type;
+import nangor_blast.game.system.event.game_event_manager;
 import nangor_blast.interfaces.blast_world;
 
-// Pengelola semua bomb dan explosion yang sedang aktif.
-// Dipanggil dari playing_state: place_bomb() saat tombol bomb ditekan, update() setiap frame.
 public class bomb_manager {
 
-    // Batas dt supaya lonjakan waktu (misalnya setelah jeda) tidak meledakkan semua bom sekaligus.
     private static final double max_dt = 0.25;
 
     private final blast_world world;
+    private final game_event_manager event_manager;
+
     private final List<bomb> bombs = new ArrayList<>();
     private final List<explosion> explosions = new ArrayList<>();
     private final List<entity> targets = new ArrayList<>();
+
     private long last_nano = -1;
     private bomb_type selected_type = bomb_type.normal;
 
     public bomb_manager(blast_world world) {
-        this.world = world;
+        this(world, new game_event_manager());
     }
 
-    // Daftarkan entity yang bisa terkena ledakan (player, nanti enemy dan boss).
+    public bomb_manager(
+        blast_world world,
+        game_event_manager event_manager
+    ) {
+        this.world = world;
+        this.event_manager = event_manager;
+    }
+
     public void add_target(entity target) {
+
         if (target != null && !targets.contains(target)) {
             targets.add(target);
         }
     }
 
-    // Jenis bomb untuk pemasangan berikutnya (default Normal). Remote hanya bisa dipilih setelah unlock.
     public boolean select_type(player owner, bomb_type type) {
-        if (type == bomb_type.remote && (owner == null || !owner.has_remote_unlocked())) {
+
+        if (owner == null || type == null) {
             return false;
         }
+
+        if (
+            type == bomb_type.remote &&
+            !owner.has_remote_unlocked()
+        ) {
+            return false;
+        }
+
         selected_type = type;
         return true;
     }
@@ -53,63 +72,117 @@ public class bomb_manager {
         return selected_type;
     }
 
-    // Pasang bomb dengan jenis yang sedang dipilih.
     public boolean place_selected(player owner) {
         return place_bomb(owner, selected_type);
     }
 
-    // Pasang bomb di posisi player. Mengembalikan false kalau tidak boleh.
     public boolean place_bomb(player owner, bomb_type type) {
-        if (owner == null || !owner.is_active() || !owner.can_place_bomb()) {
+
+        if (
+            owner == null ||
+            !owner.is_active() ||
+            !owner.can_place_bomb() ||
+            type == null
+        ) {
             return false;
         }
-        if (type == bomb_type.remote && !owner.has_remote_unlocked()) {
+
+        if (
+            type == bomb_type.remote &&
+            !owner.has_remote_unlocked()
+        ) {
             return false;
         }
-        if (get_bomb_at(owner.get_x(), owner.get_y()) != null) {
-            return false;
-        }
+
         int x = owner.get_x();
         int y = owner.get_y();
+
+        if (!world.is_walkable(x, y)) {
+            return false;
+        }
+
+        if (get_bomb_at(x, y) != null) {
+            return false;
+        }
+
         bomb created = switch (type) {
             case normal -> new normal_bomb(x, y, owner);
             case pumped -> new pumped_bomb(x, y, owner);
             case remote -> new remote_bomb(x, y, owner);
         };
+
         owner.place_bomb();
         bombs.add(created);
+
+        event_manager.notify_event(
+            new game_event(
+                event_type.bomb_placed,
+                created,
+                owner,
+                x,
+                y,
+                0
+            )
+        );
+
         return true;
     }
 
-    // DETONATE: picu semua remote bomb milik player. Mengembalikan jumlah bom yang dipicu.
     public int detonate_remote(player owner) {
+
         if (owner == null || !owner.has_remote_unlocked()) {
             return 0;
         }
+
         int count = 0;
+
         for (bomb b : bombs) {
-            if (b.get_owner() == owner && b.get_type() == bomb_type.remote
-                    && !b.is_triggered() && !b.is_exploded()) {
+
+            if (
+                b.get_owner() == owner &&
+                b.get_type() == bomb_type.remote &&
+                !b.is_triggered() &&
+                !b.is_exploded()
+            ) {
+
                 b.trigger();
                 count++;
+
+                event_manager.notify_event(
+                    new game_event(
+                        event_type.bomb_detonated,
+                        b,
+                        owner,
+                        b.get_x(),
+                        b.get_y(),
+                        0
+                    )
+                );
             }
         }
+
         return count;
     }
 
-    // Versi yang menghitung dt sendiri dari jam sistem, cocok dengan loop Erin yang tanpa parameter.
     public void update() {
+
         long now = System.nanoTime();
-        double dt = last_nano < 0 ? 0 : (now - last_nano) / 1_000_000_000.0;
+
+        double dt = last_nano < 0
+            ? 0
+            : (now - last_nano) / 1_000_000_000.0;
+
         last_nano = now;
+
         update(dt);
     }
 
-    // Versi dengan dt eksplisit (detik). Dipakai juga oleh tes.
     public void update(double dt) {
+
         if (dt < 0) {
             dt = 0;
         }
+
         if (dt > max_dt) {
             dt = max_dt;
         }
@@ -118,34 +191,88 @@ public class bomb_manager {
             b.update(dt);
         }
 
-        // Explosion lama menua dulu; explosion baru mulai menghitung 0.5 detik dari tick berikutnya.
-        for (explosion e : explosions) {
+        for (explosion e : new ArrayList<>(explosions)) {
+
             e.update(dt);
+
+            if (!e.is_active()) {
+
+                event_manager.notify_event(
+                    new game_event(
+                        event_type.explosion_ended,
+                        e.get_source(),
+                        e,
+                        e.get_x(),
+                        e.get_y(),
+                        0
+                    )
+                );
+            }
         }
+
         explosions.removeIf(e -> !e.is_active());
 
-        // Ledakkan bom yang sudah terpicu (fuse habis atau DETONATE), termasuk rantainya.
         for (bomb b : new ArrayList<>(bombs)) {
+
             if (b.is_triggered() && !b.is_exploded()) {
-                for (explosion e : explosion_resolver.detonate(world, bombs, b)) {
+
+                List<explosion> new_explosions =
+                    explosion_resolver.detonate(
+                        world,
+                        bombs,
+                        b
+                    );
+
+                for (explosion e : new_explosions) {
+
                     explosions.add(e);
-                    explosion_resolver.apply_damage(targets, e);
+
+                    event_manager.notify_event(
+                        new game_event(
+                            event_type.bomb_exploded,
+                            e.get_source(),
+                            e,
+                            e.get_x(),
+                            e.get_y(),
+                            e.get_source().get_blast_range()
+                        )
+                    );
+
+                    event_manager.notify_event(
+                        new game_event(
+                            event_type.explosion_created,
+                            e.get_source(),
+                            e,
+                            e.get_x(),
+                            e.get_y(),
+                            0
+                        )
+                    );
+
+                    explosion_resolver.apply_damage(
+                        targets,
+                        e,
+                        event_manager
+                    );
                 }
             }
         }
+
         bombs.removeIf(bomb::is_exploded);
     }
 
     public bomb get_bomb_at(int x, int y) {
+
         for (bomb b : bombs) {
+
             if (b.get_x() == x && b.get_y() == y) {
                 return b;
             }
         }
+
         return null;
     }
 
-    // True kalau masih ada bomb atau explosion; dipakai layar untuk tahu perlu digambar ulang.
     public boolean has_activity() {
         return !bombs.isEmpty() || !explosions.isEmpty();
     }

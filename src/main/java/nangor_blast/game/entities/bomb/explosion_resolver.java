@@ -11,6 +11,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import nangor_blast.game.entities.entity;
+import nangor_blast.game.entities.player.player;
+import nangor_blast.game.system.event.game_event;
+import nangor_blast.game.system.event.game_event.event_type;
+import nangor_blast.game.system.event.game_event_manager;
 import nangor_blast.interfaces.blast_block;
 import nangor_blast.interfaces.blast_world;
 import nangor_blast.interfaces.damageable;
@@ -22,80 +26,193 @@ public final class explosion_resolver {
     private explosion_resolver() {
     }
 
-    // Meledakkan satu bom beserta seluruh rantainya. Iteratif (bukan rekursif),
-    // dan tiap bom hanya diproses satu kali, jadi rantai pasti berhenti.
-    public static List<explosion> detonate(blast_world world, List<bomb> all_bombs, bomb first) {
+    public static List<explosion> detonate(
+        blast_world world,
+        List<bomb> all_bombs,
+        bomb first
+    ) {
+
         List<explosion> result = new ArrayList<>();
-        if (first.is_exploded()) {
+
+        if (first == null || first.is_exploded()) {
             return result;
         }
-        Set<bomb> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+
+        Set<bomb> seen = Collections.newSetFromMap(
+            new IdentityHashMap<>()
+        );
+
         Deque<bomb> queue = new ArrayDeque<>();
+
         first.trigger();
         seen.add(first);
         queue.add(first);
 
         while (!queue.isEmpty()) {
+
             bomb current = queue.poll();
+
             if (current.is_exploded()) {
                 continue;
             }
+
             current.mark_exploded();
             current.get_owner().bomb_exploded();
 
             List<blast_block> to_destroy = new ArrayList<>();
-            Set<blast_tile> area = propagate(world, current, to_destroy);
+
+            Set<blast_tile> area = propagate(
+                world,
+                current,
+                to_destroy
+            );
+
             result.add(new explosion(current, area));
 
             for (blast_block block : to_destroy) {
                 block.destroy();
             }
+
             for (bomb other : all_bombs) {
-                if (!seen.contains(other) && !other.is_exploded()
-                        && area.contains(new blast_tile(other.get_x(), other.get_y()))) {
+
+                if (
+                    !seen.contains(other) &&
+                    !other.is_exploded() &&
+                    area.contains(
+                        new blast_tile(
+                            other.get_x(),
+                            other.get_y()
+                        )
+                    )
+                ) {
+
                     other.trigger();
                     seen.add(other);
                     queue.add(other);
                 }
             }
         }
+
         return result;
     }
 
-    // Memberi damage ke semua entity aktif yang bisa terkena damage dan berada di area ledakan.
-    // Player yang sedang kebal tidak terkena karena can_be_damaged() bernilai false.
-    public static void apply_damage(List<? extends entity> entities, explosion blast) {
+    public static void apply_damage(
+        List<? extends entity> entities,
+        explosion blast
+    ) {
+        apply_damage(entities, blast, null);
+    }
+
+    public static void apply_damage(
+        List<? extends entity> entities,
+        explosion blast,
+        game_event_manager event_manager
+    ) {
+
         for (entity target : entities) {
-            if (target.is_active() && target instanceof damageable d
-                    && blast.covers(target.get_x(), target.get_y()) && d.can_be_damaged()) {
-                d.take_damage(player_damage);
+
+            if (
+                !target.is_active() ||
+                !(target instanceof damageable d) ||
+                !blast.covers(target.get_x(), target.get_y()) ||
+                !d.can_be_damaged()
+            ) {
+                continue;
+            }
+
+            d.take_damage(player_damage);
+
+            if (event_manager == null) {
+                continue;
+            }
+
+            if (target instanceof player p) {
+
+                event_manager.notify_event(
+                    new game_event(
+                        event_type.player_damaged,
+                        blast.get_source(),
+                        target,
+                        target.get_x(),
+                        target.get_y(),
+                        player_damage
+                    )
+                );
+
+                if (!p.is_alive()) {
+
+                    event_manager.notify_event(
+                        new game_event(
+                            event_type.player_died,
+                            blast.get_source(),
+                            target,
+                            target.get_x(),
+                            target.get_y(),
+                            0
+                        )
+                    );
+                }
+
+            } else {
+
+                event_manager.notify_event(
+                    new game_event(
+                        event_type.entity_damaged,
+                        blast.get_source(),
+                        target,
+                        target.get_x(),
+                        target.get_y(),
+                        player_damage
+                    )
+                );
             }
         }
     }
 
-    // Menghitung area satu ledakan: pusat + 4 arah. Tile block tidak pernah masuk area.
-    static Set<blast_tile> propagate(blast_world world, bomb source, List<blast_block> to_destroy) {
+    static Set<blast_tile> propagate(
+        blast_world world,
+        bomb source,
+        List<blast_block> to_destroy
+    ) {
+
         Set<blast_tile> area = new LinkedHashSet<>();
-        area.add(new blast_tile(source.get_x(), source.get_y()));
+
+        area.add(
+            new blast_tile(
+                source.get_x(),
+                source.get_y()
+            )
+        );
+
         for (blast_direction d : blast_direction.values()) {
+
             int x = source.get_x();
             int y = source.get_y();
+
             for (int i = 0; i < source.get_blast_range(); i++) {
+
                 x += d.get_dx();
                 y += d.get_dy();
+
                 if (world.is_out_of_bounds(x, y)) {
                     break;
                 }
+
                 Optional<blast_block> block = world.get_block_at(x, y);
+
                 if (block.isPresent()) {
+
                     if (block.get().is_destroyed_by(source)) {
                         to_destroy.add(block.get());
                     }
+
                     break;
                 }
+
                 area.add(new blast_tile(x, y));
             }
         }
+
         return area;
     }
 }

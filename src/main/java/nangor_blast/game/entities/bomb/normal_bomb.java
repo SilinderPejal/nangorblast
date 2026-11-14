@@ -1,3 +1,4 @@
+
 package nangor_blast.game.entities.bomb;
 
 import nangor_blast.game.entities.player.player;

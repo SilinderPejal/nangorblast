@@ -6,13 +6,13 @@ import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.screen.Screen;
 
 import nangor_blast.game.environment.game_map;
-import nangor_blast.game.entities.player.player1;
+import nangor_blast.game.entities.player.player;
 
 public class cli_player {
 
     public void render(
         Screen screen,
-        player1 player,
+        player player,
         game_map map
     ) {
 

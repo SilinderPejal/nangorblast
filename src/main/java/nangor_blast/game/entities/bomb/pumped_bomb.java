@@ -1,3 +1,4 @@
+
 package nangor_blast.game.entities.bomb;
 
 import nangor_blast.game.entities.player.player;
@@ -5,11 +6,15 @@ import nangor_blast.game.entities.player.player;
 public class pumped_bomb extends bomb {
 
     private static final double fuse_seconds = 4.5;
-    private static final int extra_range = 2;
-    private static final int max_range = 7;
 
     public pumped_bomb(int x, int y, player owner) {
-        super(x, y, owner, Math.min(max_range, owner.get_blast_range() + extra_range), fuse_seconds);
+        super(
+            x,
+            y,
+            owner,
+            owner.get_pumped_blast_range(),
+            fuse_seconds
+        );
     }
 
     @Override

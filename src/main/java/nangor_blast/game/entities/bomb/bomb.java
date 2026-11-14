@@ -1,3 +1,4 @@
+
 package nangor_blast.game.entities.bomb;
 
 import nangor_blast.game.entities.entity;
@@ -12,11 +13,21 @@ public abstract class bomb extends entity implements explodable {
     private boolean triggered;
     private boolean exploded;
 
-    protected bomb(int x, int y, player owner, int blast_range, double fuse_time) {
+    protected bomb(
+        int x,
+        int y,
+        player owner,
+        int blast_range,
+        double fuse_time
+    ) {
         super(x, y);
+
         this.owner = owner;
         this.blast_range = blast_range;
         this.fuse_time = fuse_time;
+
+        this.triggered = false;
+        this.exploded = false;
     }
 
     public abstract bomb_type get_type();
@@ -25,13 +36,18 @@ public abstract class bomb extends entity implements explodable {
 
     public abstract boolean can_break_reinforced();
 
-    // Fuse dikurangi dari dt milik loop, bukan Thread.sleep, supaya Pause otomatis membekukannya.
-    // entity belum punya update(dt), jadi ini method milik bomb sendiri.
     public void update(double dt) {
+
         if (!is_active() || triggered) {
             return;
         }
+
+        if (Double.isInfinite(fuse_time)) {
+            return;
+        }
+
         fuse_time -= dt;
+
         if (fuse_time <= 0) {
             trigger();
         }
@@ -51,8 +67,8 @@ public abstract class bomb extends entity implements explodable {
         return exploded;
     }
 
-    // Dipanggil explosion_resolver: satu bom hanya boleh menghasilkan satu explosion.
     void mark_exploded() {
+
         exploded = true;
         set_active(false);
     }

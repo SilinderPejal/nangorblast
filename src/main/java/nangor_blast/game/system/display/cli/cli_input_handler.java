@@ -7,6 +7,7 @@ import com.googlecode.lanterna.input.KeyType;
 import nangor_blast.game.system.menu.menu_state;
 import nangor_blast.game.system.menu.main_menu;
 import nangor_blast.game.system.game_session;
+import nangor_blast.game.entities.bomb.bomb_type;
 import nangor_blast.game.entities.player.player_movement;
 import nangor_blast.interfaces.game_state.game_state_type;
 
@@ -82,18 +83,65 @@ public class cli_input_handler {
         player_movement movement
     ) {
 
+        if (session == null || movement == null) {
+            invalid_input = true;
+            return;
+        }
+
         KeyType key_type = key.getKeyType();
         Character character = key.getCharacter();
-
-        int dx = 0;
-        int dy = 0;
 
         if (key_type != KeyType.Character || character == null) {
             invalid_input = true;
             return;
         }
 
-        switch (Character.toLowerCase(character)) {
+        char input = Character.toLowerCase(character);
+
+        switch (input) {
+
+            // SPACE atau B untuk memasang bomb.
+            case ' ':
+            case 'b':
+                session.get_bomb_manager().place_selected(
+                    session.get_player()
+                );
+                return;
+
+            // Memilih jenis bomb.
+            case '1':
+                session.get_bomb_manager().select_type(
+                    session.get_player(),
+                    bomb_type.normal
+                );
+                return;
+
+            case '2':
+                session.get_bomb_manager().select_type(
+                    session.get_player(),
+                    bomb_type.pumped
+                );
+                return;
+
+            case '3':
+                session.get_bomb_manager().select_type(
+                    session.get_player(),
+                    bomb_type.remote
+                );
+                return;
+
+            // Detonasi seluruh remote bomb milik player.
+            case 'q':
+                session.get_bomb_manager().detonate_remote(
+                    session.get_player()
+                );
+                return;
+        }
+
+        int dx = 0;
+        int dy = 0;
+
+        switch (input) {
 
             case 'w':
                 dy = -1;
@@ -116,7 +164,11 @@ public class cli_input_handler {
                 return;
         }
 
-        movement.move_player(session.get_player(), dx, dy);
+        movement.move_player(
+            session.get_player(),
+            dx,
+            dy
+        );
     }
 
     public boolean has_invalid_input() {

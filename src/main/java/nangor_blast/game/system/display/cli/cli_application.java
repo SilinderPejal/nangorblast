@@ -205,6 +205,11 @@ public class cli_application {
 
                 state_manager.update();
 
+                // Render ulang selama gameplay berjalan,
+                // termasuk ketika bomb sedang menghitung fuse.
+                if (state_manager.get_current_state_type() ==game_state_type.playing) {
+                    dirty = true;}
+        
                 // Detect state transition
                 if (
                     previous_state !=

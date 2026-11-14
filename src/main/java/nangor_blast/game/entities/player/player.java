@@ -13,7 +13,6 @@ public abstract class player extends entity implements playable, moveable, damag
     private static final int max_blast_range = 5;
     private static final long invulnerability_duration = 1500;
 
-
     protected final int player_id;
     protected int lives;
     protected int bomb_capacity;
@@ -54,6 +53,7 @@ public abstract class player extends entity implements playable, moveable, damag
 
     @Override
     public void lose_life() {
+
         if (!can_be_damaged()) {
             return;
         }
@@ -73,12 +73,14 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void increase_lives() {
-    if (lives < max_lives) {
-        lives++;
+
+        if (lives < max_lives) {
+            lives++;
+        }
     }
-}
 
     protected void respawn() {
+
         invulnerable = true;
 
         invulnerability_end_time =
@@ -86,9 +88,11 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void update_invulnerability() {
-        if (invulnerable &&
-            System.currentTimeMillis() >= invulnerability_end_time) {
 
+        if (
+            invulnerable &&
+            System.currentTimeMillis() >= invulnerability_end_time
+        ) {
             invulnerable = false;
         }
     }
@@ -110,18 +114,21 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void place_bomb() {
+
         if (can_place_bomb()) {
             active_bombs++;
         }
     }
 
     public void bomb_exploded() {
+
         if (active_bombs > 0) {
             active_bombs--;
         }
     }
 
     public void increase_bomb_capacity() {
+
         if (bomb_capacity < max_bomb_capacity) {
             bomb_capacity++;
         }
@@ -131,7 +138,12 @@ public abstract class player extends entity implements playable, moveable, damag
         return blast_range;
     }
 
+    public int get_pumped_blast_range() {
+        return Math.min(blast_range + 2, 7);
+    }
+
     public void increase_blast_range() {
+
         if (blast_range < max_blast_range) {
             blast_range++;
         }
@@ -143,6 +155,7 @@ public abstract class player extends entity implements playable, moveable, damag
     }
 
     public void increase_speed(double amount) {
+
         if (amount > 0) {
             speed += amount;
         }
@@ -156,9 +169,9 @@ public abstract class player extends entity implements playable, moveable, damag
         remote_unlocked = true;
     }
 
-
     @Override
     public void move(int dx, int dy, double delta_time) {
+
         if (!is_alive() || (dx == 0 && dy == 0)) {
             return;
         }
@@ -178,6 +191,7 @@ public abstract class player extends entity implements playable, moveable, damag
 
     @Override
     public void take_damage(int damage) {
+
         if (!can_be_damaged() || damage <= 0) {
             return;
         }
@@ -185,9 +199,12 @@ public abstract class player extends entity implements playable, moveable, damag
         lives -= damage;
 
         if (lives <= 0) {
+
             lives = 0;
             set_active(false);
+
         } else {
+
             respawn();
         }
     }

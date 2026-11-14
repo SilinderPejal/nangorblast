@@ -23,7 +23,12 @@ public class map_blast_world implements blast_world {
     }
 
     @Override
+    public boolean is_walkable(int x, int y) {
+        return map.is_walkable(x, y);
+    }
+
+    @Override
     public Optional<blast_block> get_block_at(int x, int y) {
-        return Optional.empty();
+        return map.get_block_at(x, y);
     }
 }

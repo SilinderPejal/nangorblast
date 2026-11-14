@@ -1,26 +1,58 @@
-
 package nangor_blast.game.entities.player;
 
 import nangor_blast.game.environment.game_map;
 import nangor_blast.game.environment.ice_tile;
+import nangor_blast.game.system.bomb_manager;
+import nangor_blast.game.system.event.game_event;
+import nangor_blast.game.system.event.game_event.event_type;
+import nangor_blast.game.system.event.game_event_manager;
 
 public class player_movement {
 
     private final game_map map;
     private final ice_tile ice;
 
+    private final bomb_manager bomb_manager;
+    private final game_event_manager event_manager;
+
     public player_movement(game_map map) {
+        this(map, null, null);
+    }
+
+    public player_movement(
+        game_map map,
+        bomb_manager bomb_manager,
+        game_event_manager event_manager
+    ) {
         this.map = map;
+        this.bomb_manager = bomb_manager;
+        this.event_manager = event_manager;
+
         this.ice = new ice_tile(map);
+    }
+
+    private boolean can_move_to(int x, int y) {
+
+        if (!map.is_walkable(x, y)) {
+            return false;
+        }
+
+        if (
+            bomb_manager != null &&
+            bomb_manager.get_bomb_at(x, y) != null
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     public boolean move_player(player player, int dx, int dy) {
 
-        if (!player.is_alive()) {
+        if (player == null || !player.is_alive()) {
             return false;
         }
 
-        // Hanya memperbolehkan gerakan satu tile
         if (Math.abs(dx) + Math.abs(dy) != 1) {
             return false;
         }
@@ -28,26 +60,36 @@ public class player_movement {
         int new_x = player.get_x() + dx;
         int new_y = player.get_y() + dy;
 
-        // Mengecek batas map dan tile tujuan
-        if (!map.is_walkable(new_x, new_y)) {
+        if (!can_move_to(new_x, new_y)) {
             return false;
         }
 
-        // Memindahkan player ke tile tujuan
         player.move(dx, dy, 1.0);
 
-        // Melanjutkan gerakan selama player berada di Ice Tile
         while (ice.is_on_ice(player.get_x(), player.get_y())) {
 
             int next_x = player.get_x() + dx;
             int next_y = player.get_y() + dy;
 
-            // Berhenti jika terdapat obstacle
-            if (!map.is_walkable(next_x, next_y)) {
+            if (!can_move_to(next_x, next_y)) {
                 break;
             }
 
             player.move(dx, dy, 1.0);
+        }
+
+        if (event_manager != null) {
+
+            event_manager.notify_event(
+                new game_event(
+                    event_type.player_moved,
+                    player,
+                    null,
+                    player.get_x(),
+                    player.get_y(),
+                    0
+                )
+            );
         }
 
         return true;
