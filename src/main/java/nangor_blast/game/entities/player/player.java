@@ -161,6 +161,10 @@ public abstract class player extends entity implements playable, moveable, damag
         }
     }
 
+    public int get_max_lives() {
+    return max_lives;
+    }
+    
     public boolean has_remote_unlocked() {
         return remote_unlocked;
     }

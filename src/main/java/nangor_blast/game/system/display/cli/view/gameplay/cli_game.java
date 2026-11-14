@@ -16,10 +16,12 @@ public class cli_game {
 
     private final cli_map map_view;
     private final cli_player player_view;
+    private final cli_life_ui life_view;
 
     public cli_game() {
         map_view = new cli_map();
         player_view = new cli_player();
+        life_view = new cli_life_ui();
     }
 
     public void render(
@@ -79,7 +81,14 @@ public class cli_game {
             }
         }
 
-        // Player dirender terakhir.
+        // Render player life UI.
+        life_view.render(
+            screen,
+            session.get_player(),
+            session.get_current_map()
+        );
+
+        // Render player terakhir.
         player_view.render(
             screen,
             session.get_player(),
