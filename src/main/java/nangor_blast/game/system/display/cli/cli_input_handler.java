@@ -36,7 +36,7 @@ public class cli_input_handler {
                 return handle_menu_input(key_type, menu_state);
 
             case playing:
-                handle_game_input(key_type, session, movement);
+                handle_game_input(key, session, movement);
                 break;
 
             case win:
@@ -77,29 +77,37 @@ public class cli_input_handler {
     }
 
     private void handle_game_input(
-        KeyType key_type,
+        KeyStroke key,
         game_session session,
         player_movement movement
     ) {
 
+        KeyType key_type = key.getKeyType();
+        Character character = key.getCharacter();
+
         int dx = 0;
         int dy = 0;
 
-        switch (key_type) {
+        if (key_type != KeyType.Character || character == null) {
+            invalid_input = true;
+            return;
+        }
 
-            case ArrowUp:
+        switch (Character.toLowerCase(character)) {
+
+            case 'w':
                 dy = -1;
                 break;
 
-            case ArrowDown:
+            case 's':
                 dy = 1;
                 break;
 
-            case ArrowLeft:
+            case 'a':
                 dx = -1;
                 break;
 
-            case ArrowRight:
+            case 'd':
                 dx = 1;
                 break;
 
