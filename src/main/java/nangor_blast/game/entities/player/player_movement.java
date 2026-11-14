@@ -9,11 +9,13 @@ import nangor_blast.game.system.event.game_event_manager;
 
 public class player_movement {
 
+    private static final long base_move_interval_nanos = 200_000_000L;
     private final game_map map;
     private final ice_tile ice;
 
     private final bomb_manager bomb_manager;
     private final game_event_manager event_manager;
+    private long next_move_nanos = System.nanoTime();
 
     public player_movement(game_map map) {
         this(map, null, null);
@@ -49,11 +51,17 @@ public class player_movement {
 
     public boolean move_player(player player, int dx, int dy) {
 
-        if (player == null || !player.is_alive()) {
+        if (player == null || !player.is_alive() || !player.is_active()) {
             return false;
         }
 
         if (Math.abs(dx) + Math.abs(dy) != 1) {
+            return false;
+        }
+
+        long now = System.nanoTime();
+
+        if (now - next_move_nanos < 0) {
             return false;
         }
 
@@ -64,7 +72,9 @@ public class player_movement {
             return false;
         }
 
-        player.move(dx, dy, 1.0);
+        // Pindah ke tile yang sudah diperiksa, lalu ambil item jika ada.
+        player.set_position(new_x, new_y);
+        map.collect_power_up(player);
 
         while (ice.is_on_ice(player.get_x(), player.get_y())) {
 
@@ -75,11 +85,14 @@ public class player_movement {
                 break;
             }
 
-            player.move(dx, dy, 1.0);
+            player.set_position(next_x, next_y);
+            map.collect_power_up(player);
         }
 
-        if (event_manager != null) {
+        // Speed Up membuat gerakan berikutnya bisa dilakukan lebih cepat.
+        next_move_nanos = now + (long) (base_move_interval_nanos / player.get_speed());
 
+        if (event_manager != null) {
             event_manager.notify_event(
                 new game_event(
                     event_type.player_moved,

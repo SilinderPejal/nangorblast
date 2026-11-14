@@ -11,6 +11,7 @@ public abstract class player extends entity implements playable, moveable, damag
     private static final int max_lives = 5;
     private static final int max_bomb_capacity = 3;
     private static final int max_blast_range = 5;
+    private static final double max_speed = 2.0;
     private static final long invulnerability_duration = 1500;
 
     protected final int player_id;
@@ -146,7 +147,8 @@ public abstract class player extends entity implements playable, moveable, damag
 
     public void increase_speed(double amount) {
         if (amount > 0) {
-            speed += amount;
+            // Maksimal dua kali kecepatan awal.
+            speed = Math.min(speed + amount, max_speed);
         }
     }
 

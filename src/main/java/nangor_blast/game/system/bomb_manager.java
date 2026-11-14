@@ -220,7 +220,8 @@ public class bomb_manager {
                     explosion_resolver.detonate(
                         world,
                         bombs,
-                        b
+                        b,
+                        event_manager
                     );
 
                 for (explosion e : new_explosions) {

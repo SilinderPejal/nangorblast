@@ -4,6 +4,11 @@ package nangor_blast.game.system.display.cli.view.gameplay;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
+import nangor_blast.game.entities.power_up.bomb_up;
+import nangor_blast.game.entities.power_up.fire_up;
+import nangor_blast.game.entities.power_up.heart;
+import nangor_blast.game.entities.power_up.remote_detonator;
+import nangor_blast.game.entities.power_up.speed_up;
 
 import nangor_blast.game.environment.game_map;
 
@@ -68,6 +73,25 @@ public class cli_map {
                     default:
                         tile = ". ";
                         break;
+                }
+
+                var item = map.get_power_up_at(x, y).orElse(null);
+
+                // Gambar simbol power-up di atas simbol dasar tile.
+                if (item instanceof bomb_up) {
+                    tile = "+ ";
+                } else if (item instanceof fire_up) {
+                    tile = "f ";
+                } else if (item instanceof heart) {
+                    tile = "h ";
+                } else if (item instanceof remote_detonator) {
+                    tile = "r ";
+                } else if (item instanceof speed_up) {
+                    tile = "s ";
+                }
+
+                if (item != null) {
+                    graphics.setForegroundColor(TextColor.ANSI.YELLOW);
                 }
 
                 graphics.putString(start_x + x * 2, start_y + y, tile);

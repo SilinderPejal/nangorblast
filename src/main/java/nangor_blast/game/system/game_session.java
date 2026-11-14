@@ -9,6 +9,9 @@ import nangor_blast.game.system.event.game_event;
 import nangor_blast.game.system.event.game_event.event_type;
 import nangor_blast.game.system.event.game_event_manager;
 import nangor_blast.interfaces.game_state.game_state_type;
+import nangor_blast.game.entities.power_up.remote_detonator;
+import nangor_blast.game.entities.block.destructible_block;
+import nangor_blast.game.entities.power_up.power_up_drop;
 
 public class game_session {
 
@@ -28,6 +31,19 @@ public class game_session {
         game_state = null;
 
         event_manager = new game_event_manager();
+
+        // Dengarkan penghancuran D dan gunakan map sesi yang sedang aktif.
+        event_manager.add_listener(event -> {
+            if (event.get_type() == event_type.block_destroyed
+                    && event.get_target() instanceof destructible_block
+                    && current_map != null) {
+                power_up_drop.try_spawn(
+                    current_map,
+                    event.get_x(),
+                    event.get_y()
+                );
+            }
+        });
 
         bomb_manager = null;
         player_respawn = null;
@@ -70,6 +86,9 @@ public class game_session {
             current_map.get_spawn_y()
         );
 
+        // Remote Detonator bisa diambil satu langkah ke kanan dari spawn.
+        current_map.place_power_up(new remote_detonator(2, 1));
+        
         bomb_manager = new bomb_manager(
             current_map,
             event_manager
