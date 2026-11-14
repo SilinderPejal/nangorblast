@@ -5,6 +5,8 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 
+import nangor_blast.game.entities.block.destructible_block;
+import nangor_blast.game.entities.block.indestructible_block;
 import nangor_blast.game.environment.game_map;
 
 public class cli_map {
@@ -27,24 +29,22 @@ public class cli_map {
 
             for (int x = 0; x < map.get_width(); x++) {
 
+                var tile_block = map.get_block_at(x, y).orElse(null);
+                String tile = ". ";
+
+                graphics.setForegroundColor(TextColor.ANSI.WHITE);
+
                 if (map.is_exit(x, y)) {
                     graphics.setForegroundColor(TextColor.ANSI.GREEN);
-
-                    graphics.putString(
-                        start_x + x * 2,
-                        start_y + y,
-                        "X "
-                    );
-
-                } else {
-                    graphics.setForegroundColor(TextColor.ANSI.WHITE);
-
-                    graphics.putString(
-                        start_x + x * 2,
-                        start_y + y,
-                        ". "
-                    );
+                    tile = "X ";
+                } else if (tile_block instanceof indestructible_block) {
+                    tile = "# ";
+                } else if (tile_block instanceof destructible_block) {
+                    tile = "D ";
                 }
+
+                graphics.putString(start_x + x * 2, start_y + y, tile);
+                
             }
         }
     }
