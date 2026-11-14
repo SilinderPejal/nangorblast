@@ -32,7 +32,7 @@ public class cli_life_ui {
         TextGraphics graphics = screen.newTextGraphics();
 
         int ui_x = start_x;
-        int ui_y = start_y - 1;
+        int ui_y = start_y - 2;
 
         for (int i = 0; i < max_lives; i++) {
 
