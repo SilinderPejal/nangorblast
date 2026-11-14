@@ -10,6 +10,8 @@ import nangor_blast.game.entities.player.player;
 
 public class cli_player {
 
+    private static final long blink_interval = 150;
+
     public void render(
         Screen screen,
         player player,
@@ -17,6 +19,14 @@ public class cli_player {
     ) {
 
         if (player == null || !player.is_active()) {
+            return;
+        }
+
+        // Efek blinking selama invulnerability.
+        if (
+            player.is_invulnerable() &&
+            (System.currentTimeMillis() / blink_interval) % 2 == 0
+        ) {
             return;
         }
 
@@ -32,7 +42,7 @@ public class cli_player {
         graphics.putString(
             start_x + player.get_x() * 2,
             start_y + player.get_y(),
-            "P "
+            "\u219F"
         );
     }
 }
