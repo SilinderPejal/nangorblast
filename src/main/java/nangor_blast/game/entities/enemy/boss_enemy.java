@@ -8,10 +8,6 @@ import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 import nangor_blast.interfaces.damageable;
 
-// Induk semua boss (F05.3). Siklus serangan dijalankan di update():
-// pilih serangan acak (tidak sama dua kali berturut-turut) -> warning 1 detik
-// -> active -> cooldown 5 detik. Rentan 4 detik pertama cooldown, hanya jika
-// serangan terakhir memberi kerentanan.
 public abstract class boss_enemy extends enemy {
 
     protected static final double warning_duration = 1.0;
@@ -99,7 +95,6 @@ public abstract class boss_enemy extends enemy {
             }
         }
 
-        // Jangan pilih serangan yang sama dua kali berturut-turut jika ada pilihan lain.
         if (candidates.size() > 1) {
             candidates.remove(last_attack);
         }
@@ -145,7 +140,6 @@ public abstract class boss_enemy extends enemy {
         vulnerable = vulnerable_eligible;
     }
 
-    // Boss hanya menerima damage saat rentan (bomb: 1 normal/remote, 2 pumped).
     @Override
     public boolean can_be_damaged() {
         return is_active() && vulnerable;
@@ -171,7 +165,6 @@ public abstract class boss_enemy extends enemy {
         }
     }
 
-    // Tile yang perlu digambar sebagai '!' (warning) atau '*' (aktif) oleh renderer.
     public List<int[]> get_danger_tiles() {
 
         if (current_attack == null) {
@@ -206,7 +199,6 @@ public abstract class boss_enemy extends enemy {
         this.facing_dy = dy;
     }
 
-    // Musuh baru (mis. Hatchling) menunggu didaftarkan oleh game session.
     public void request_spawn(enemy spawned) {
         pending_spawns.add(spawned);
     }
