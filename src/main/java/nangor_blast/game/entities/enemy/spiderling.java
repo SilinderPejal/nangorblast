@@ -3,8 +3,6 @@ package nangor_blast.game.entities.enemy;
 import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 
-// Memanggil 3 Hatchling pada tile kosong di dekat Mantis (fase 2: 4).
-// Tidak membuat boss rentan.
 public class spiderling extends boss_attack {
 
     private static final double hatchling_speed = 1.5;
