@@ -5,8 +5,6 @@ import java.util.List;
 import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 
-// Chase Enemy: PATROL saat player jauh, CHASE saat player dalam jarak deteksi.
-// Mewarisi patrol_enemy karena kondisi PATROL-nya identik.
 public class chase_enemy extends patrol_enemy {
 
     private static final int detection_range = 3;
@@ -30,7 +28,6 @@ public class chase_enemy extends patrol_enemy {
             return;
         }
 
-        // Asumsi: jarak deteksi dihitung dengan jarak Manhattan (jumlah tile).
         boolean detected = target != null && target.is_active()
             && Math.abs(target.get_x() - x) + Math.abs(target.get_y() - y) <= detection_range;
 
