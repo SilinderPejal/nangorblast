@@ -1,7 +1,5 @@
 package nangor_blast.game.entities.enemy;
 
-// Boss White Glacier (F05.3.5): 8 health, fase 2 saat health <= 4, skor 500.
-// Rentan setelah Scythe Swipe atau Jump Slam.
 public class mantis extends boss_enemy {
 
     private static final int mantis_health = 8;
