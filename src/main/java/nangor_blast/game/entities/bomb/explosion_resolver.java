@@ -18,6 +18,7 @@ import nangor_blast.game.system.event.game_event_manager;
 import nangor_blast.interfaces.blast_block;
 import nangor_blast.interfaces.blast_world;
 import nangor_blast.interfaces.damageable;
+import nangor_blast.game.entities.block.block;
 
 public final class explosion_resolver {
 
@@ -30,6 +31,15 @@ public final class explosion_resolver {
         blast_world world,
         List<bomb> all_bombs,
         bomb first
+    ) {
+        return detonate(world, all_bombs, first, null);
+    }
+
+    public static List<explosion> detonate(
+        blast_world world,
+        List<bomb> all_bombs,
+        bomb first,
+        game_event_manager event_manager
     ) {
 
         List<explosion> result = new ArrayList<>();
@@ -69,8 +79,24 @@ public final class explosion_resolver {
 
             result.add(new explosion(current, area));
 
-            for (blast_block block : to_destroy) {
-                block.destroy();
+            for (blast_block destroyed : to_destroy) {
+                destroyed.destroy();
+
+                // Kirim event setelah block hancur agar tile bisa ditempati item.
+                if (event_manager != null
+                        && destroyed instanceof block tile_block
+                        && !tile_block.is_active()) {
+                    event_manager.notify_event(
+                        new game_event(
+                            event_type.block_destroyed,
+                            current,
+                            tile_block,
+                            tile_block.get_x(),
+                            tile_block.get_y(),
+                            0
+                        )
+                    );
+                }
             }
 
             for (bomb other : all_bombs) {
