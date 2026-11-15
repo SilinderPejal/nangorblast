@@ -3,8 +3,6 @@ package nangor_blast.game.entities.enemy;
 import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 
-// Hatchling: Normal Enemy tambahan yang dipanggil Mantis (Spiderling).
-// Selalu bergerak mendekati player. Dibuat oleh boss, bukan dari spawn point map.
 public class hatchling extends normal_enemy {
 
     public hatchling(int x, int y, double speed) {
