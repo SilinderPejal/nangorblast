@@ -42,7 +42,7 @@ public class cli_player {
         graphics.putString(
             start_x + player.get_x() * 2,
             start_y + player.get_y(),
-            "\u219F"
+            "P"
         );
     }
 }
