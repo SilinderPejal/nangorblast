@@ -5,8 +5,6 @@ import nangor_blast.interfaces.blast_world;
 import nangor_blast.interfaces.damageable;
 import nangor_blast.interfaces.moveable;
 
-// Induk semua musuh (F05.1). Koordinat memakai grid tile seperti entity lain.
-// speed dalam satuan tile per detik.
 public abstract class enemy extends entity implements moveable, damageable {
 
     protected int health;
@@ -14,7 +12,6 @@ public abstract class enemy extends entity implements moveable, damageable {
     protected final double speed;
     protected final int score_value;
 
-    // Akumulator agar enemy melangkah satu tile setiap 1/speed detik.
     private double step_progress;
 
     protected enemy(int x, int y, int health, double speed, int score_value) {
@@ -27,7 +24,6 @@ public abstract class enemy extends entity implements moveable, damageable {
         this.step_progress = 0;
     }
 
-    // Dipanggil game loop setiap tick. target = player yang sedang dimainkan.
     public abstract void update(double delta_time, blast_world world, entity target);
 
     public int get_health() {
@@ -51,8 +47,6 @@ public abstract class enemy extends entity implements moveable, damageable {
         return speed;
     }
 
-    // Melangkah satu tile (dx, dy) setiap akumulator mencapai 1.
-    // Pengecekan tabrakan dilakukan pemanggil lewat can_step().
     @Override
     public void move(int dx, int dy, double delta_time) {
 
@@ -75,8 +69,6 @@ public abstract class enemy extends entity implements moveable, damageable {
         return !world.is_out_of_bounds(nx, ny) && world.is_walkable(nx, ny);
     }
 
-    // Langkah greedy mendekati (tx, ty): coba sumbu terjauh dulu, lalu sumbu lain.
-    // Mengembalikan false jika kedua arah terhalang atau sudah di tujuan.
     protected boolean step_toward(blast_world world, int tx, int ty, double delta_time) {
 
         int dx = Integer.signum(tx - x);

@@ -3,8 +3,6 @@ package nangor_blast.game.entities.enemy;
 import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 
-// Melompat ke posisi player (dikunci saat warning) lalu menghantam area 3 x 3.
-// Fase 2: area 5 x 5. Durasi 1 detik. Membuat boss rentan.
 public class jump_slam extends boss_attack {
 
     private int landing_x;
@@ -33,7 +31,6 @@ public class jump_slam extends boss_attack {
     @Override
     public void on_active_start(boss_enemy boss, entity target, blast_world world) {
 
-        // TODO(tim): tentukan perilaku jika tile pendaratan terisi (player/enemy).
         if (world.is_walkable(landing_x, landing_y)) {
             boss.set_position(landing_x, landing_y);
         }

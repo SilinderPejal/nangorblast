@@ -1,6 +1,5 @@
 package nangor_blast.game.entities.enemy;
 
-// Normal Enemy: 1 nyawa, 100 poin (F05.2, F08).
 public abstract class normal_enemy extends enemy {
 
     protected static final int normal_health = 1;
