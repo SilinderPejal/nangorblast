@@ -6,3 +6,9 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+/out/
+
+/bin/
+
+/NangorBlast*.jar

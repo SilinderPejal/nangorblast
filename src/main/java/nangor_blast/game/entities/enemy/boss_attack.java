@@ -14,10 +14,8 @@ public abstract class boss_attack {
 
     public abstract void prepare(boss_enemy boss, entity target, blast_world world);
 
-    // Durasi aktif dalam detik, tergantung fase boss (1 atau 2).
     public abstract double get_active_duration(int phase);
 
-    // True jika boss jadi rentan setelah serangan ini selesai.
     public boolean grants_vulnerability() {
         return false;
     }
@@ -27,6 +25,16 @@ public abstract class boss_attack {
     }
 
     public void on_active_start(boss_enemy boss, entity target, blast_world world) {
+    }
+
+    public void on_active_tick(boss_enemy boss, double delta_time, blast_world world) {
+    }
+
+    public void on_active_end(boss_enemy boss, blast_world world) {
+    }
+
+    public boss_attack get_follow_up(boss_enemy boss) {
+        return null;
     }
 
     public List<int[]> get_affected_tiles() {

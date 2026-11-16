@@ -6,7 +6,6 @@ import java.util.List;
 import nangor_blast.game.entities.entity;
 import nangor_blast.interfaces.blast_world;
 
-// Patrol Enemy: berjalan terus ngikutin rute waypoint {x, y} secara melingkar.
 public class patrol_enemy extends normal_enemy {
 
     private final List<int[]> route;
@@ -24,7 +23,6 @@ public class patrol_enemy extends normal_enemy {
         patrol(delta_time, world);
     }
 
-    // Dipakai bareng sama chase_enemy untuk kondisi PATROL.
     protected void patrol(double delta_time, blast_world world) {
 
         if (!is_active() || route.isEmpty()) {

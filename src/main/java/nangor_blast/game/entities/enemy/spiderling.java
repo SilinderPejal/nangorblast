@@ -15,7 +15,6 @@ public class spiderling extends boss_attack {
 
     @Override
     public void prepare(boss_enemy boss, entity target, blast_world world) {
-        // Tidak ada area damage. Tile pemanggilan ditentukan saat serangan aktif.
     }
 
     @Override

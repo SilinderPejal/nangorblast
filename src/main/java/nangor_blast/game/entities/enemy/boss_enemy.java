@@ -63,11 +63,22 @@ public abstract class boss_enemy extends enemy {
             }
 
             case active -> {
+                current_attack.on_active_tick(this, delta_time, world);
                 apply_attack_damage(target);
                 timer -= delta_time;
 
                 if (timer <= 0) {
-                    finish_attack();
+                    current_attack.on_active_end(this, world);
+
+                    boss_attack follow_up = current_attack.get_follow_up(this);
+
+                    if (follow_up != null) {
+                        last_attack = current_attack;
+                        current_attack.get_affected_tiles().clear();
+                        begin_attack(follow_up, world, target);
+                    } else {
+                        finish_attack();
+                    }
                 }
             }
 
@@ -103,7 +114,12 @@ public abstract class boss_enemy extends enemy {
             return;
         }
 
-        current_attack = candidates.get(random.nextInt(candidates.size()));
+        begin_attack(candidates.get(random.nextInt(candidates.size())), world, target);
+    }
+
+    private void begin_attack(boss_attack attack, blast_world world, entity target) {
+
+        current_attack = attack;
         current_attack.get_affected_tiles().clear();
         current_attack.prepare(this, target, world);
 
@@ -111,7 +127,6 @@ public abstract class boss_enemy extends enemy {
         timer = warning_duration;
     }
 
-    // Player di area serangan saat aktif kehilangan 1 nyawa, sekali per aktivasi.
     private void apply_attack_damage(entity target) {
 
         if (hit_applied || target == null || !target.is_active()) {
