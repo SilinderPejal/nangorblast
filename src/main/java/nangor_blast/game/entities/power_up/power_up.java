@@ -5,9 +5,15 @@ import nangor_blast.game.entities.player.player;
 import nangor_blast.interfaces.collectible;
 
 public abstract class power_up extends entity implements collectible {
+    private final power_up_type type;
 
-    protected power_up(int x, int y) {
+    protected power_up(int x, int y, power_up_type type) {
         super(x, y);
+        this.type = type;
+    }
+
+    public power_up_type get_type() {
+        return type;
     }
 
     @Override

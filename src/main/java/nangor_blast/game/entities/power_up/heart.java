@@ -5,7 +5,7 @@ import nangor_blast.game.entities.player.player;
 public class heart extends power_up {
 
     public heart(int x, int y) {
-        super(x, y);
+        super(x, y, power_up_type.heart);
     }
 
     @Override

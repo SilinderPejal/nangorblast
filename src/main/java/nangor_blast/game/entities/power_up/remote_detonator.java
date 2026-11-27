@@ -5,7 +5,7 @@ import nangor_blast.game.entities.player.player;
 public class remote_detonator extends power_up {
 
     public remote_detonator(int x, int y) {
-        super(x, y);
+        super(x, y, power_up_type.remote_detonator);
     }
 
     @Override
