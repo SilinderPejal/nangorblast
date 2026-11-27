@@ -5,7 +5,7 @@ import nangor_blast.game.entities.player.player;
 public class fire_up extends power_up {
 
     public fire_up(int x, int y) {
-        super(x, y);
+        super(x, y, power_up_type.fire_up);
     }
 
     @Override

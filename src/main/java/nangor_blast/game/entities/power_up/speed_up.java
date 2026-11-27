@@ -5,7 +5,7 @@ import nangor_blast.game.entities.player.player;
 public class speed_up extends power_up {
 
     public speed_up(int x, int y) {
-        super(x, y);
+        super(x, y, power_up_type.speed_up);
     }
 
     @Override
